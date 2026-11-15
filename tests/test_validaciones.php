@@ -23,48 +23,50 @@ $casosCantidad = [
     ["cantidad decimal", "2.5", false]
 ];
 
+// CINCO PRUEBAS UNITARIAS PARA LA MARCA
+$casosMarca = [
+    ["marca válida: Samsung", "Samsung", true],
+    ["marca de un carácter", "A", false],
+    ["marca vacía", "", false],
+    ["marca con 25 caracteres", "1234567890123456789012345", true],
+    ["marca con espacios al inicio y final", "  Sony  ", true]
+];
+
 $correctas = 0;
 $fallidas = 0;
 
+function ejecutarPruebas(array $casos, callable $validar): void
+{
+    global $correctas, $fallidas;
+
+    foreach ($casos as [$descripcion, $entrada, $esperado]) {
+        $obtenido = $validar($entrada);
+
+        if ($obtenido === $esperado) {
+            echo "PASS - $descripcion\n";
+            $correctas++;
+        } else {
+            echo "FAIL - $descripcion\n";
+            echo "Esperado: " . var_export($esperado, true) . "\n";
+            echo "Obtenido: " . var_export($obtenido, true) . "\n";
+            $fallidas++;
+        }
+    }
+}
 
 echo "\n----- PRUEBAS DE NOMBRE -----\n";
-
-foreach ($casosNombre as [$descripcion, $entrada, $esperado]) {
-
-    $obtenido = validarNombreProducto($entrada);
-
-    if ($obtenido === $esperado) {
-        echo "PASS - $descripcion\n";
-        $correctas++;
-    } else {
-        echo "FAIL - $descripcion\n";
-        echo " Esperado: " . var_export($esperado, true) . "\n";
-        echo " Obtenido: " . var_export($obtenido, true) . "\n";
-        $fallidas++;
-    }
-}
-
+ejecutarPruebas($casosNombre, 'validarNombreProducto');
 
 echo "\n----- PRUEBAS DE CANTIDAD -----\n";
+ejecutarPruebas($casosCantidad, 'validarCantidadProducto');
 
-foreach ($casosCantidad as [$descripcion, $entrada, $esperado]) {
+echo "\n----- PRUEBAS DE MARCA -----\n";
+ejecutarPruebas($casosMarca, 'validarMarcaProducto');
 
-    $obtenido = validarCantidadProducto($entrada);
+$total = count($casosNombre) + count($casosCantidad) + count($casosMarca);
 
-    if ($obtenido === $esperado) {
-        echo "PASS - $descripcion\n";
-        $correctas++;
-    } else {
-        echo "FAIL - $descripcion\n";
-        echo " Esperado: " . var_export($esperado, true) . "\n";
-        echo " Obtenido: " . var_export($obtenido, true) . "\n";
-        $fallidas++;
-    }
-}
-
-// RESUMEN GENERAL
 echo "\n------- RESUMEN -------\n";
-echo "Total: " . (count($casosNombre) + count($casosCantidad)) . "\n";
+echo "Total: $total\n";
 echo "Correctas: $correctas\n";
 echo "Fallidas: $fallidas\n";
 

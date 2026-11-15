@@ -1,5 +1,4 @@
 name: Pruebas automatizadas - Inventario
-
 on:
   push:
   pull_request:
@@ -36,14 +35,14 @@ jobs:
       DB_PASSWORD: clave_pruebas
 
     steps:
-      - name: Descargar código
+      - name: Descargar codigo
         uses: actions/checkout@v4
 
       - name: Configurar PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
-          extensions: pdo_mysql
+          extensions: pdo_mysql, mbstring
 
       - name: Verificar sintaxis
         run: |
@@ -59,10 +58,10 @@ jobs:
           mysql --protocol=TCP \
             --host="$DB_HOST" \
             --user="$DB_USER" \
-            "$DB_NAME" < base_datos.sql
+            "$DB_NAME" < tests/crear_base_pruebas.sql
 
       - name: Ejecutar pruebas unitarias
         run: php tests/test_validaciones.php
 
-      - name: Ejecutar prueba de integración
+      - name: Ejecutar pruebas de integracion
         run: php tests/test_integracion_productos.php

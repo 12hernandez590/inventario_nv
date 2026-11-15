@@ -20,3 +20,11 @@ function validarCantidadProducto($cantidad): bool
         ['options' => ['min_range' => 1]]
     ) !== false;
 }
+
+function validarMarcaProducto(string $marca): bool
+{
+    $marca = trim($marca);
+
+    return mb_strlen($marca, 'UTF-8') >= 2
+        && mb_strlen($marca, 'UTF-8') <= 25;
+}

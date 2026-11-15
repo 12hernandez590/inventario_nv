@@ -1,25 +1,27 @@
 <?php
-
 require_once __DIR__ . '/config/conexion.php';
 
 $consulta = $conexion->query(
     'SELECT
         id,
         nombre,
+        marca,
         cantidad,
         precio,
         fecharegistro
     FROM productos
-    ORDER BY id asc'
+    ORDER BY id ASC'
 );
 
 $productos = $consulta->fetchAll(PDO::FETCH_ASSOC);
 
 $estado = $_GET['estado'] ?? '';
+
 ?>
 
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
 
@@ -32,13 +34,20 @@ $estado = $_GET['estado'] ?? '';
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet"
+    >
+
     <link rel="stylesheet" href="css/estilos.css">
 </head>
 
 <body>
+
     <header class="encabezado">
         <div class="contenido-encabezado">
+
             <p class="etiqueta">GPDS</p>
 
             <h1>INVENTARIO</h1>
@@ -46,15 +55,20 @@ $estado = $_GET['estado'] ?? '';
             <p>
                 Registro y consulta de productos
             </p>
+
         </div>
     </header>
 
     <main class="contenedor">
+
+        <!-- FORMULARIO PARA REGISTRAR PRODUCTOS -->
+
         <section class="tarjeta formulario">
+
             <h2>Registrar producto</h2>
 
             <p class="descripcion">
-                Escriba el nombre, la cantidad y el precio del producto.
+                Escriba el nombre, la marca, la cantidad y el precio del producto.
             </p>
 
             <?php if ($estado === 'guardado'): ?>
@@ -111,7 +125,15 @@ $estado = $_GET['estado'] ?? '';
                 </div>
             <?php endif; ?>
 
+            <?php if ($estado === 'marca_invalida'): ?>
+                <div class="mensaje error">
+                    La marca debe tener entre 2 y 25 caracteres.
+                </div>
+            <?php endif; ?>
+
+
             <form action="guardar.php" method="POST">
+
                 <div class="campo">
                     <label for="nombre">
                         Nombre del producto
@@ -123,6 +145,24 @@ $estado = $_GET['estado'] ?? '';
                         name="nombre"
                         maxlength="60"
                         placeholder="Ejemplo: Café"
+                        required
+                    >
+                </div>
+
+                <!-- NUEVO CAMPO MARCA -->
+
+                <div class="campo">
+                    <label for="marca">
+                        Marca del producto
+                    </label>
+
+                    <input
+                        type="text"
+                        id="marca"
+                        name="marca"
+                        minlength="2"
+                        maxlength="25"
+                        placeholder="Ejemplo: Samsung"
                         required
                     >
                 </div>
@@ -161,21 +201,33 @@ $estado = $_GET['estado'] ?? '';
                 <button type="submit">
                     Registrar producto
                 </button>
+
             </form>
+
         </section>
 
+
+        <!-- LISTADO DE PRODUCTOS -->
+
         <section class="tarjeta listado">
+
             <div class="titulo-listado">
                 <div>
+
                     <h2>Productos registrados</h2>
 
                     <p class="descripcion">
                         Total: <?php echo count($productos); ?>
                     </p>
+
                 </div>
             </div>
 
+
+            <!-- BUSCADOR -->
+
             <div class="buscador-wrapper">
+
                 <label class="label-buscador" for="buscar-producto">
                     Buscar producto
                 </label>
@@ -184,21 +236,29 @@ $estado = $_GET['estado'] ?? '';
                     id="buscar-producto"
                     class="buscador"
                     type="text"
-                    placeholder="Busca por nombre, ID, cantidad, estado o fecha..."
+                    placeholder="Busca por nombre, marca, ID, cantidad, estado o fecha..."
                     aria-label="Buscar productos"
                 >
 
                 <p id="resultado-buscador" class="resultado-busqueda">
-                    Mostrando <?php echo count($productos); ?> de <?php echo count($productos); ?> productos
+                    Mostrando <?php echo count($productos); ?>
+                    de <?php echo count($productos); ?> productos
                 </p>
+
             </div>
 
+
+            <!-- TABLA DE PRODUCTOS -->
+
             <div class="tabla-contenedor">
+
                 <table>
+
                     <thead>
                         <tr>
                             <th>ID</th>
                             <th>Producto</th>
+                            <th>Marca</th>
                             <th>Cantidad</th>
                             <th>Precio</th>
                             <th>Estado</th>
@@ -206,72 +266,90 @@ $estado = $_GET['estado'] ?? '';
                         </tr>
                     </thead>
 
+
                     <tbody id="tbody-productos">
+
                         <?php if (count($productos) === 0): ?>
+
                             <tr>
-                                <td colspan="6" class="sin-registros">
+                                <td colspan="7" class="sin-registros">
                                     No hay productos registrados.
                                 </td>
                             </tr>
+
                         <?php endif; ?>
 
+
                         <?php foreach ($productos as $producto): ?>
+
                             <?php
-                            $estadoProducto = (int) $producto['cantidad'] > 0 ? 'disponible' : 'agotado';
-                            $estadoLabel = (int) $producto['cantidad'] > 0 ? 'Disponible' : 'Sin existencia';
+
+                            $estadoProducto = (int) $producto['cantidad'] > 0
+                                ? 'disponible'
+                                : 'agotado';
+
+                            $estadoLabel = (int) $producto['cantidad'] > 0
+                                ? 'Disponible'
+                                : 'Sin existencia';
+
                             $textoBusqueda = strtolower(
                                 trim(
                                     $producto['id'] . ' ' .
                                     $producto['nombre'] . ' ' .
+                                    $producto['marca'] . ' ' .
                                     $producto['cantidad'] . ' ' .
                                     $estadoLabel . ' ' .
                                     $producto['fecharegistro']
                                 )
                             );
+
                             ?>
+
                             <tr
                                 class="fila-producto"
                                 data-busqueda="<?php echo htmlspecialchars($textoBusqueda, ENT_QUOTES, 'UTF-8'); ?>"
                             >
+
+                                <!-- ID -->
+
                                 <td>
                                     <?php echo $producto['id']; ?>
                                 </td>
 
+
+                                <!-- NOMBRE DEL PRODUCTO -->
+
                                 <td>
+
                                     <?php
                                     echo htmlspecialchars(
-                                        $producto['nombre']
+                                        $producto['nombre'],
+                                        ENT_QUOTES,
+                                        'UTF-8'
                                     );
                                     ?>
 
-                                    <form
-                                        class="formulario-fix-nombre"
-                                        action="fix_nombre.php"
-                                        method="POST"
-                                    >
-                                        <input
-                                            type="hidden"
-                                            name="id"
-                                            value="<?php echo (int) $producto['id']; ?>"
-                                        >
-                                        <input
-                                            type="text"
-                                            name="nombre"
-                                            value="<?php echo htmlspecialchars($producto['nombre'], ENT_QUOTES, 'UTF-8'); ?>"
-                                            maxlength="60"
-                                            aria-label="Nuevo nombre para <?php echo htmlspecialchars($producto['nombre'], ENT_QUOTES, 'UTF-8'); ?>"
-                                            required
-                                        >
-                                        <button
-                                            class="boton-fix-nombre"
-                                            type="submit"
-                                        >
-                                            FIX Nombre
-                                        </button>
-                                    </form>
                                 </td>
 
+
+                                <!-- MARCA DEL PRODUCTO -->
+
                                 <td>
+
+                                    <?php
+                                    echo htmlspecialchars(
+                                        $producto['marca'],
+                                        ENT_QUOTES,
+                                        'UTF-8'
+                                    );
+                                    ?>
+
+                                </td>
+
+                                <!-- CANTIDAD -->
+
+                                <td>
+
                                     <?php echo $producto['cantidad']; ?>
 
                                     <form
@@ -279,11 +357,13 @@ $estado = $_GET['estado'] ?? '';
                                         action="fix_correccion.php"
                                         method="POST"
                                     >
+
                                         <input
                                             type="hidden"
                                             name="id"
                                             value="<?php echo (int) $producto['id']; ?>"
                                         >
+
                                         <input
                                             type="number"
                                             name="cantidad"
@@ -293,16 +373,22 @@ $estado = $_GET['estado'] ?? '';
                                             aria-label="Nueva cantidad para <?php echo htmlspecialchars($producto['nombre'], ENT_QUOTES, 'UTF-8'); ?>"
                                             required
                                         >
+
                                         <button
                                             class="boton-fix-correccion"
                                             type="submit"
                                         >
                                             Corregir
                                         </button>
+
                                     </form>
+
                                 </td>
 
+                                <!-- PRECIO -->
+
                                 <td>
+
                                     <?php
                                     echo number_format(
                                         (float) $producto['precio'],
@@ -312,45 +398,26 @@ $estado = $_GET['estado'] ?? '';
                                     );
                                     ?>
 
-                                    <form
-                                        class="formulario-fix-precio"
-                                        action="fix_precio.php"
-                                        method="POST"
-                                    >
-                                        <input
-                                            type="hidden"
-                                            name="id"
-                                            value="<?php echo (int) $producto['id']; ?>"
-                                        >
-                                        <input
-                                            type="number"
-                                            name="precio"
-                                            value="<?php echo number_format((float) $producto['precio'], 2, '.', ''); ?>"
-                                            min="0"
-                                            max="99999999.99"
-                                            step="0.01"
-                                            aria-label="Nuevo precio para <?php echo htmlspecialchars($producto['nombre'], ENT_QUOTES, 'UTF-8'); ?>"
-                                            required
-                                        >
-                                        <button
-                                            class="boton-fix-precio"
-                                            type="submit"
-                                        >
-                                            FIX Precio
-                                        </button>
-                                    </form>
                                 </td>
 
+                                <!-- ESTADO Y ELIMINAR -->
+
                                 <td>
+
                                     <?php if ($producto['cantidad'] > 0): ?>
+
                                         <span class="estado disponible">
                                             Disponible
                                         </span>
+
                                     <?php else: ?>
+
                                         <span class="estado agotado">
                                             Sin existencia
                                         </span>
+
                                     <?php endif; ?>
+
 
                                     <form
                                         class="formulario-eliminar"
@@ -358,89 +425,153 @@ $estado = $_GET['estado'] ?? '';
                                         method="POST"
                                         onsubmit="return confirm('¿Deseas eliminar este producto?');"
                                     >
+
                                         <input
                                             type="hidden"
                                             name="id"
                                             value="<?php echo (int) $producto['id']; ?>"
                                         >
+
                                         <button
                                             class="boton-eliminar"
                                             type="submit"
                                         >
                                             Eliminar
                                         </button>
+
                                     </form>
+
                                 </td>
 
+                                <!-- FECHA -->
+
                                 <td>
+
                                     <?php
-                                    echo $producto['fecharegistro'];
+                                    echo htmlspecialchars(
+                                        $producto['fecharegistro'],
+                                        ENT_QUOTES,
+                                        'UTF-8'
+                                    );
                                     ?>
+
                                 </td>
+
                             </tr>
+
                         <?php endforeach; ?>
+
                     </tbody>
+
                 </table>
+
             </div>
+
         </section>
+
     </main>
+
 
     <footer>
         U1. Planeación del proceso de desarrollo de software
     </footer>
 
+    <!-- BUSCADOR AUTOMÁTICO -->
+
     <script>
+
         const buscador = document.getElementById('buscar-producto');
-        const filas = Array.from(document.querySelectorAll('.fila-producto'));
+
+        const filas = Array.from(
+            document.querySelectorAll('.fila-producto')
+        );
+
         const resultadoBuscador = document.getElementById('resultado-buscador');
 
         const normalizarTexto = (valor) => {
+
             return valor
                 .normalize('NFD')
                 .replace(/([\u0300-\u036f])/g, '')
                 .toLowerCase()
                 .trim();
+
         };
 
         const actualizarVista = () => {
+
             const termino = normalizarTexto(buscador.value || '');
+
             let visibles = 0;
 
+
             filas.forEach((fila) => {
-                const texto = normalizarTexto(fila.dataset.busqueda || '');
+
+                const texto = normalizarTexto(
+                    fila.dataset.busqueda || ''
+                );
+
                 const coincide = !termino || texto.includes(termino);
+
                 fila.style.display = coincide ? '' : 'none';
+
 
                 if (coincide) {
                     visibles += 1;
                 }
+
             });
 
             const total = filas.length;
+
             resultadoBuscador.textContent = termino
                 ? `Mostrando ${visibles} de ${total} productos`
                 : `Mostrando ${total} de ${total} productos`;
 
-            const filaSinResultados = document.getElementById('fila-sin-resultados');
+
+            const filaSinResultados = document.getElementById(
+                'fila-sin-resultados'
+            );
+
             if (filaSinResultados) {
                 filaSinResultados.remove();
             }
 
             if (visibles === 0) {
+
                 const filaVacia = document.createElement('tr');
+
                 filaVacia.id = 'fila-sin-resultados';
-                filaVacia.innerHTML = '<td colspan="5" class="sin-registros">No se encontraron productos que coincidan con la búsqueda.</td>';
-                document.getElementById('tbody-productos').appendChild(filaVacia);
+
+                filaVacia.innerHTML =
+                    '<td colspan="7" class="sin-registros">No se encontraron productos que coincidan con la búsqueda.</td>';
+
+                document.getElementById('tbody-productos').appendChild(
+                    filaVacia
+                );
+
             }
+
         };
 
+
         let temporizadorBusqueda;
+
         buscador.addEventListener('input', () => {
+
             clearTimeout(temporizadorBusqueda);
-            temporizadorBusqueda = setTimeout(actualizarVista, 700);
+
+            temporizadorBusqueda = setTimeout(
+                actualizarVista,
+                700
+            );
+
         });
 
         actualizarVista();
+
     </script>
+
 </body>
+
 </html>
